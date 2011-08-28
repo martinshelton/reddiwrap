@@ -1,7 +1,7 @@
-RedditWrap
-----------
+reddiwrap
+---------
 
-RedditWrap is a python wrapper for communicating with the reddit.com API.
+reddiwrap is a python wrapper for communicating with the reddit.com API.
 
 ----
 
@@ -9,7 +9,7 @@ Interacting with the reddit API is simple, but figuring it out can take a while.
 
 This class allows the interaction with reddit to be simple and easy.
 
-RedditWrap makes it easy to:
+reddiwrap makes it easy to:
 
   * login,
   * view user info,
@@ -27,12 +27,19 @@ RedditWrap makes it easy to:
 ----
 
 Sample usage:
+-------------
 
-    # To upvote every post on the /r/pics front page.
+    # To upvote the first post on the /r/pics front page.
     
-    from RedditWrap import RedditWrap
+    from ReddiWrap import ReddiWrap
     
-    reddit = RedditWrap('sample_username', 'password')
+    # Login
+    reddit = ReddiWrap('user_name_here', 'password_here')
+    
+    # Ensure we logged in correctly
+    if not reddit.logged_in:
+      print 'not logged in. invalid pw?'
+      exit(1)
     
     # get every post from reddit.com/r/pics
     pics = reddit.get('/r/pics')
@@ -40,9 +47,13 @@ Sample usage:
     # Iterate over each post
     for post in pics['data']['children']:
       
-      # Get the post ID
+      # Get this post's ID
       id = post['data']['name']
       
-      # Upvote each post
+      # Upvote this post
       reddit.vote(id, 1)
+      
+      # Stop after the first post
+      break
+
 
