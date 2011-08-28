@@ -10,7 +10,11 @@ by Derv Merkler @ github.com/derv82/reddiwrap
 """
 
 import Web
-import json
+
+try:
+  import json
+except ImportError:
+  import simplejson as json
 
 
 class ReddiWrap:
@@ -30,7 +34,7 @@ class ReddiWrap:
     """
     
     # object we will use to communicate with the WWW
-    self.web = Web.Web() 
+    self.web = Web.Web(user_agent='ReddiWrap') 
     
     self.modhash = ''
     
@@ -70,7 +74,7 @@ class ReddiWrap:
       self.web.clear_cookies()
   
   
-  def login(self):
+  def login(self, user='', password=''):
     """
       Logs into reddit. 
       The auth cookie is stored in the cookiejar (cj) in the 'self.web' object.
@@ -79,6 +83,10 @@ class ReddiWrap:
         
         https://github.com/reddit/reddit/wiki/API%3A-login
     """
+    
+    if user != '' and password != '': 
+      self.user     = user
+      self.password = password
     
     # Clear any cookies we may have accumulated.
     self.web.clear_cookies()
@@ -167,6 +175,7 @@ class ReddiWrap:
       Returns None if unable to get data from URL.
       
       'url' must be within the reddit.com domain!
+      Note that relative addressing is allowed, eg .get('/r/pics')
       
       This method automatically adds the appropriate '.json' 
       extension to the URL if not already included.
@@ -176,7 +185,7 @@ class ReddiWrap:
       users of this class don't have to worry about modhash.
       
       Examples:
-        * reddit.get('http://reddit.com/user/karmanaut')
+        * reddit.get('http://reddit.com/user/karmanaut/submitted')
         * reddit.get('/r/all/new.json')
         * reddit.get('http://reddit.com/search?q=funny?sort=new')
         
@@ -186,22 +195,33 @@ class ReddiWrap:
     
     self.last_url = url
     
-    r = self.web.get(url)
-    if r == '': return None
+    r = self.web.get(url) # Get the JSON response via reddit's API
     
-    js = json.loads(r)
+    if r == '' or r == '""': return None # Server gave null response.
     
-    # response either contains a list (in which case we select the first)
+    try:
+      js = json.loads(r)
+    except ValueError: return None # If it's not JSON, we can't parse it.
+    
+    # If the response contains a list of data objects...
     if isinstance(js, list):
       data = js[0]['data']
     
-    # or simply the data, in which case we grab it.
+    # or simply the data object...
     else:
-      data = js['data']
+      data = js.get('data')
     
+    if data == None: return None       # We must have a 'data' object.
+    
+    # Set the variables to keep track of the user hash and current page.
     self.modhash = data.get('modhash')
     self.before  = data.get('before')
     self.after   = data.get('after')
+    
+    # Return the children if there are any. 
+    # This saves an extra step in the process of iterating over posts/comments.
+    if data.get('children') != None:
+      return data['children']
     
     return js
    
@@ -241,18 +261,78 @@ class ReddiWrap:
   # COMMENTING #
   ##############
   
-  def get_comments(self, id):
+  def get_comments(self, id, sort=''):
+    """
+      Returns a json object containing the comments of a post.
+      Returns None if unable to retrieve.
+      
+      id   - The ID of the post to retrieve comments of.
+      sort - The order to display the comments
+             e.g. 'best', 'hot', 'new', 'controversial', 'top', 'old'
+    """
+    
+    # Remove the t#_ tag
+    if id[0] == 't' and id[2] == '_':
+      id = id[3:]
+    
+    url = self.fix_url('http://reddit.com/comments/' + id)
+    
+    if sort != '':
+      url += '?sort=' + sort
+    
+    self.last_url = url
+    
+    r = self.web.get(url)
+    if r == '': return None
+    
+    js = json.loads(r)
+    
+    # response either contains a list (in which case we select the first)
+    if isinstance(js, list):
+      data   = js[0]['data']
+      result = js[1]['data']['children']
+    # or simply the data, in which case we grab it.
+    else:
+      data   = js['data']
+      result = js['data']['children']
+    
+    self.modhash = data.get('modhash')
+    self.before  = data.get('before')
+    self.after   = data.get('after')
+    
+    return result
+  
+  
+  def get_user_comments(self, user, sort=''):
     """
       Returns a json object containing the comments of a post.
       Returns None if unable to retrieve.
     """
-    if id[0] == 't' and id[2] == '_':
-      id = id[3:]
+    url = self.fix_url('http://reddit.com/user/' + user + '/comments')
+    if sort != '':
+      url += '?sort=' + sort
     
-    response = self.get('http://reddit.com/comments/' + id)
-    if len(response) < 2: return None
+    self.last_url = url
     
-    return response[1]['data']
+    r = self.web.get(url)
+    if r == '': return None
+    
+    js = json.loads(r)
+    
+    # response either contains a list (in which case we select the first)
+    if isinstance(js, list):
+      data   = js[0]['data']
+      result = js[1]['data']['children']
+    # or simply the data, in which case we grab it.
+    else:
+      data   = js['data']
+      result = js['data']['children']
+    
+    self.modhash = data.get('modhash')
+    self.before  = data.get('before')
+    self.after   = data.get('after')
+    
+    return result
   
   
   def comment(self, id, text):
@@ -261,14 +341,15 @@ class ReddiWrap:
       depending on what type the 'id' is.
     """
     
-    if id.startswith('t3'):
+    if id.startswith('t3_'):
       # Commenting on a post
-      self.comment_on_post(id, text)
+      return self.comment_on_post(id, text)
       
-    else:
+    elif id.startswith('t1_'):
       # Commenting on a comment in a post.
-      self.comment_on_comment(id, text)
-  
+      return self.comment_on_comment(id, text)
+      
+    else: return false
   
   def comment_on_post(self, post_id, text):
     """
@@ -320,13 +401,15 @@ class ReddiWrap:
   
   
   
-  #############
-  # USER INFO #
-  #############
+  ################
+  # USER METHODS #
+  ################
   
   def user_info(self):
     """
       Returns JSON object containing information about logged-in user.
+      
+      Returns None if unable to retrieve user info.
       
       More info about what is returned can be found here:
       
@@ -341,9 +424,10 @@ class ReddiWrap:
           print 'youve got mail!'
     """
     
-    js = self.get('http://www.reddit.com/api/me.json')['data']
+    js = self.get('http://www.reddit.com/api/me.json')
+    if js == None: return None
     
-    return js
+    return js.get('data')
   
   
   def get_subreddits(self):
@@ -351,12 +435,15 @@ class ReddiWrap:
       Returns list of JSON objects. Each item in the list contains 
       information about the subreddits the user has subscribed to.
       
+      Returns empty list [] if unable to retrieve user's subreddits.
       More info about what is returned can be found here:
       
         https://github.com/reddit/reddit/wiki/API%3A-mine.json
     """
     
     js = self.get('http://www.reddit.com/reddits/mine.json')
+    
+    if js == None or js.get('data') == None: return []
     
     self.modhash = js['data']['modhash']
     

@@ -5,6 +5,7 @@ Web class.
 
 Holds commonly-used HTTP/web request/post methods.
 
+by Derv Merkler @ github.com/derv82
 """
 
 import time

@@ -32,28 +32,22 @@ Sample usage:
     
     from ReddiWrap import ReddiWrap
     
-    # Login
-    reddit = ReddiWrap('user_name_here', 'password_here')
+    # Creates class, logs into account 'user' with the password 'pass' .
+    reddit = ReddiWrap('user', 'pass') 
     
-    # Ensure we logged in correctly
-    if not reddit.logged_in:
-      print 'not logged in. invalid pw?'
+    if not reddit.logged_in:      # Ensure we logged in correctly
+      print 'unable to log in.'
       exit(1)
     
-    # get every post from reddit.com/r/pics
-    pics = reddit.get('/r/pics')
+    pics = reddit.get('/r/pics')  # Get posts on the front page of reddit.com/r/pics
     
-    # Iterate over each post
-    for post in pics['data']['children']:
+    for post in pics:             # Iterate over each post
       
-      # Get this post's ID
-      id = post['data']['name']
+      id = post['data']['name']   # Get the current post's ID (5-char string)
       
-      # Upvote this post
-      reddit.vote(id, 1)
+      reddit.vote(id, 1)          # Upvote this post. A -1 would mean downvote, 0 rescinds the vote.
       
-      # Stop after the first post
-      break
+      break                       # Stop after the first post
 
 
 More examples showing how reddiwrap works is available in [ReddiWrapTest.py](https://github.com/derv82/reddiwrap/blob/master/ReddiWrapTest.py).
