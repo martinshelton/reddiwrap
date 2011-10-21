@@ -71,44 +71,44 @@ posts = reddit.get('/r/reddit.com')
 
 #   ITERATE OVER POSTS
 for post in posts:
-  
-  # post_data contains information about this post
-  post_data = post['data']
-  
-  if post_data.get('title') == None: continue
-  
-  # For example, the title of the current post:
-  print 'first post title, front page:', post_data['title']
-  
-  # In order to interact with the post (vote, view comments, etc),
-  # we need the post's "ID"
-  id = post_data['name']
-  break
+	
+	# post_data contains information about this post
+	post_data = post['data']
+	
+	if post_data.get('title') == None: continue
+	
+	# For example, the title of the current post:
+	print 'first post title, front page = ', post_data['title']
+	
+	# In order to interact with the post (vote, view comments, etc),
+	# we need the post's "ID"
+	id = post_data['name']
+	break
 
   
 #   LOAD 'NEXT' PAGE OF POSTS
 
 if reddit.has_next():
-  for post in reddit.get_next():
-    post_data = post['data']
-    
-    if post_data.get('title') == None: continue
-    
-    print 'first post title, "next" page:', post_data['title']
-    break
+	for post in reddit.get_next():
+		post_data = post['data']
+
+		if post_data.get('title') == None: continue
+
+		print 'first post title, "next" page:', post_data['title']
+		break
 
 
 
 #   LOAD 'PREVIOUS' PAGE OF POSTS
 
 if reddit.has_previous():
-  for post in reddit.get_previous():
-    post_data = post['data']
-    
-    if post_data.get('title') == None: continue
-    
-    print 'first post title, "previous" page:', post_data['title']
-    break
+	for post in reddit.get_previous():
+		post_data = post['data']
+
+		if post_data.get('title') == None: continue
+
+		print 'first post title, "previous" page:', post_data['title']
+		break
 
 
 
@@ -168,12 +168,12 @@ print 'comment succesful?', reddit.comment(comment_id, 'Well, I *never*.')
 
 for comment in reddit.get_user_comments('karmanaut', sort='top'): # get the user's comments
   
-  comment_data = comment['data']
-  
-  # Print the first 30 characters of each of their comments.
-  print comment_data['body'][:30].replace('\n', '')
-  comment_id = comment_data['name']
-  
-  # break
+	comment_data = comment['data']
+
+	# Print the first 30 characters of each of their comments.
+	print comment_data['body'][:30].replace('\n', '')
+	comment_id = comment_data['name']
+
+	# break
 
 print comment_id
