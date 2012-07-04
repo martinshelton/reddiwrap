@@ -7,13 +7,28 @@ Web class.
 
 Holds commonly-used HTTP/web request/post methods.
 
-Compatible with Python 2.4.*
+Compatible with Python 2.4.*, 2.7.*, and 3.2.3!
 """
 
 import time
 
-import urllib2, cookielib, urllib
-from httplib import HTTPException, IncompleteRead
+try:
+	import urllib.request as urlrequest
+	import urllib.request as urlrequest1
+	import http.cookiejar as cookiejar
+	import urllib.parse
+	import urllib.request
+	import urllib.parse
+	import urllib.error
+	from urllib.error import HTTPError
+	from http.client import HTTPException, IncompleteRead
+except ImportError:
+	import urllib2 as urlrequest
+	import urllib  as urlrequest1
+	import cookielib as cookiejar
+	from urllib2 import HTTPError
+	from httplib import HTTPException, IncompleteRead
+
 import signal
 
 class Web:
@@ -25,11 +40,11 @@ class Web:
 		"""
 			Sets this class's user agent.
 		"""
-		self.urlopen = urllib2.urlopen
-		self.Request = urllib2.Request
-		self.cj			= cookielib.LWPCookieJar()
-		self.opener	= urllib2.build_opener(urllib2.HTTPCookieProcessor(self.cj))
-		urllib2.install_opener(self.opener)
+		self.urlopen = urlrequest.urlopen
+		self.Request = urlrequest.Request
+		self.cj      = cookiejar.LWPCookieJar()
+		self.opener  = urlrequest.build_opener(urlrequest.HTTPCookieProcessor(self.cj))
+		urlrequest.install_opener(self.opener)
 		
 		if user_agent != None:
 			self.user_agent = user_agent
@@ -48,7 +63,7 @@ class Web:
 		signal.signal(signal.SIGALRM, self.raise_timeout)
 		try:
 			signal.alarm(4)
-			site = urllib.urlopen(url)
+			site = urlrequest.urlopen(url)
 		except Exception:
 			signal.alarm(0)
 			return {'content-type': 'unknown', 'content-length': '0'}
@@ -60,8 +75,8 @@ class Web:
 		signal.signal(signal.SIGALRM, self.raise_timeout)
 		try:
 			signal.alarm(3)
-			site = urllib2.urlopen(url)
-		except urllib2.HTTPError:
+			site = urlrequest1.urlopen(url)
+		except urlrequest.error.HTTPError:
 			signal.alarm(0)
 			return url
 		except Exception:
@@ -85,10 +100,10 @@ class Web:
 		try_again = True
 		while try_again:
 			try:
-				req = self.Request(url, '', headers)
+				req = self.Request(url, None, headers)
 				handle = self.urlopen(req)
 				
-			except IOError, e:
+			except IOError as e:
 				if str(e) == 'HTTP Error 504: Gateway Time-out' or \
 					 str(e) == 'getaddrinfo failed':
 					try_again = True
@@ -146,7 +161,7 @@ class Web:
 		data = ''
 		if postdict != None:
 			fixed_dict = self.fix_dict(postdict)
-			data = urllib.urlencode(fixed_dict)
+			data = urllib.parse.urlencode(fixed_dict)
 		
 		try_again = True
 		while try_again:
@@ -154,7 +169,7 @@ class Web:
 				req = self.Request(url, data, headers)
 				handle = self.urlopen(req)
 				
-			except IOError, e:
+			except IOError as e:
 				if str(e) == 'HTTP Error 504: Gateway Time-out' or \
 					 str(e) == 'getaddrinfo failed':
 					try_again = True
@@ -192,8 +207,8 @@ class Web:
 				output.write(buf)
 			result = True
 			
-		except IOError, e: pass
-		except HTTPException, e: pass
+		except IOError as e: pass
+		except HTTPException as e: pass
 		except ValueError: return ''
 		
 		output.close()
@@ -239,5 +254,4 @@ class Web:
 			j = source.find(finish, i + len(start) + 1)
 		
 		return result
-	
 	
