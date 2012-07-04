@@ -16,16 +16,14 @@ try:
 	import urllib.request as urlrequest
 	import urllib.request as urlrequest1
 	import http.cookiejar as cookiejar
-	import urllib.parse
-	import urllib.request
-	import urllib.parse
-	import urllib.error
+	from urllib.parse import urlencode
 	from urllib.error import HTTPError
-	from http.client import HTTPException, IncompleteRead
+	from http.client  import HTTPException, IncompleteRead
 except ImportError:
-	import urllib2 as urlrequest
-	import urllib  as urlrequest1
+	import urllib2   as urlrequest
+	import urllib    as urlrequest1
 	import cookielib as cookiejar
+	from urllib  import urlencode
 	from urllib2 import HTTPError
 	from httplib import HTTPException, IncompleteRead
 
@@ -104,22 +102,23 @@ class Web:
 				handle = self.urlopen(req)
 				
 			except IOError as e:
-				if str(e) == 'HTTP Error 504: Gateway Time-out' or \
-					 str(e) == 'getaddrinfo failed':
+				if 'HTTP Error 504: Gateway Time-out' in str(e) or \
+					 'getaddrinfo failed' in str(e):
 					try_again = True
 					time.sleep(2)
 				
-				else: return ''
+				else:
+					return ''
 			
-			except HTTPException: return ''
+			except HTTPException:      return ''
 			except UnicodeEncodeError: return ''
-			except ValueError: return ''
+			except ValueError:         return ''
 				
 			else:
 				try_again = False
 			
 		try:
-			result = handle.read()
+			result = handle.read().decode('utf-8')
 		except IncompleteRead:
 			return ''
 		
@@ -161,7 +160,7 @@ class Web:
 		data = ''
 		if postdict != None:
 			fixed_dict = self.fix_dict(postdict)
-			data = urllib.parse.urlencode(fixed_dict)
+			data = urlencode(fixed_dict).encode('utf-8')
 		
 		try_again = True
 		while try_again:
@@ -184,7 +183,7 @@ class Web:
 			else:
 				try_again = False
 			
-		result = handle.read()
+		result = handle.read().decode('utf-8')
 		
 		return result
 	

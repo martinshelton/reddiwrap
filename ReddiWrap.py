@@ -3,6 +3,8 @@ Reddit.com API Wrapper (ReddiWrap)
 
 Intuitive middleware between you and reddit.com
 
+Tested on Python 2.6.7, 2.7.1, and 3.2.3 (on OSX)
+
 (C) 2012 Derv Merkler @ github.com/derv82/reddiwrap
 
 TODO:
@@ -10,8 +12,6 @@ TODO:
 	test all use cases (user about page, /r/none, etc)
 	
 	throw exceptions when receiving errors from server (403)
-	
-	update Web to be compatible w/ python3.x, python 2.4.x, etc
 """
 
 import Web # Class for communicating with the web server.
@@ -29,8 +29,8 @@ import time               # For getting current... and possibly throttling reque
 def pretty_string(dict, indent=0):
 	""" Returns string containing all keys and values in a dict. Makes it 'Pretty'. """
 	result = []
-	for key, value in dict.iteritems():
-		if isinstance(value, unicode):
+	for key, value in dict.items():
+		if isinstance(value, str):
 			result.append('\t' * indent + ('%s:\t "%s"' % (key, value)).encode('ascii', 'ignore'))
 		elif isinstance(value, list):
 			if len(value) == 0:
@@ -127,8 +127,15 @@ class Post(object):
 
 		
 	def __str__(self):
-		""" STRING summary of comment; author and body. """
-		return ('"%s" by %s in /r/%s' % (self.title, self.author, self.subreddit)).encode('ascii', 'ignore')
+		""" Summary of comment; author and body. """
+		#return str(('"%s" by %s in /r/%s' % (self.title, self.author, self.subreddit)).encode('ascii', 'ignore'))
+		text = '"%s" by %s in /r/%s' % (self.title, self.author, self.subreddit)
+		try:
+			temp = text.encode('ascii', 'ignore')
+			if not isinstance(temp, unicode):
+				text = temp
+		except NameError: pass
+		return text
 	
 	def __repr__(self):
 		return self.__str__()
@@ -214,7 +221,14 @@ class Comment(object):
 	
 	def __str__(self):
 		""" STRING summary of comment; author and body. """
-		return ('%s: "%s"' % (self.author, self.body)).encode('ascii', 'ignore')
+		#return ('%s: "%s"' % (self.author, self.body)).encode('ascii', 'ignore')
+		text = '%s: "%s"' % (self.author, self.body)
+		try:
+			temp = text.encode('ascii', 'ignore')
+			if not isinstance(temp, unicode):
+				text = temp
+		except NameError: pass
+		return text
 	
 	def __repr__(self):
 		return self.__str__()
@@ -235,7 +249,8 @@ class UserInfo(object):
 			self.name          = json_data['name']          # String, username
 			self.created       = json_data['created']       # Time since 1/1/1970 when acct was created
 			self.created_utc   = json_data['created_utc']   # Same as 'created', but in UTC
-			#self.modhash       = json_data['modhash']       # Unique hash for interacting with account
+			if json_data.get('modhash') != None:
+				self.modhash       = json_data['modhash']     # Unique hash for interacting with account
 			self.link_karma    = json_data['link_karma']    # Integer, total score of submissions
 			self.comment_karma = json_data['comment_karma'] # Integer, total score of comments
 			self.is_gold       = json_data['is_gold']       # Boolean
@@ -311,7 +326,13 @@ class Message(object):
 	
 	def __repr__(self):
 		""" Returns brief summary of message. """
-		return '%s sent PM: "%s"' % (self.author, self.body)
+		text = '%s sent PM: "%s"' % (self.author, self.body)
+		try:
+			temp = text.encode('ascii', 'ignore')
+			if not isinstance(temp, unicode):
+				text = temp
+		except NameError: pass
+		return text
 	
 	def verbose(self):
 		""" Returns string containing all fields and their values. Verbose. """
@@ -658,7 +679,7 @@ class ReddiWrap:
 		if jquery == None:
 			return result
 		
-		for i in xrange(0, len(jquery)):
+		for i in range(0, len(jquery)):
 			if not isinstance(jquery[i][3], list) or len(jquery[i][3]) == 0: continue
 			if not isinstance(jquery[i][3][0], list) or len(jquery[i][3][0]) == 0: continue
 			jdict = jquery[i][3][0][0]
@@ -872,13 +893,12 @@ class ReddiWrap:
 			
 			Returns a userinfo with .error = 404 if user page is not found. example:
 				uinfo = reddit.user_info('violentacres')
-				if uinfo.error == 404: print 'violentacres is still gone!'
-				else: print 'Who unbanned him?'
+				if uinfo.error == 404: print('violentacres is still gone')
+				else: print('What the...')
 			
 			Returns None object if unable to retrieve data.
 		"""
 		if username == None:
-			if not self.logged_in: return None
 			url = 'http://reddit.com/api/me.json'
 		else:
 			url = 'http://reddit.com/user/%s/about.json' % username
@@ -1099,3 +1119,28 @@ class ReddiWrap:
 			current /= factor
 		current /= 365
 		return '%d %s%s' % (current, 'year', '' if current == 1 else 's')
+	
+	def save_cookies(self, filename):
+		""" Saves cookies to a local file, to be loaded later by load_cookies. """
+		self.web.cj.save(filename=filename, ignore_discard=True, ignore_expires=True)
+	
+	def load_cookies(self, filename):
+		""" 
+			Loads cookie from local file. Requests reddit for username and modhash.
+			Returns True if cookie loading was successful, false otherwise.
+		"""
+		self.logged_in = False
+		self.modhash   = ''
+		self.user      = ''
+		self.password  = ''
+		try:
+			self.web.cj.load(filename=filename, ignore_discard=True, ignore_expires=True)
+			uinfo = self.user_info()
+			if uinfo == None or uinfo.name == None or uinfo.name == '': return False
+			self.user = uinfo.name
+			self.modhash = uinfo.modhash
+			self.logged_in = True
+			return True
+		except IOError:
+			return False
+	

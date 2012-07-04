@@ -3,6 +3,8 @@ reddiwrap
 
 reddiwrap is a python wrapper for communicating with the reddit.com API.
 
+Compatible with Python 2.6.7, 2.7.1, and 3.2.3
+
 ----
 
 Interacting with the reddit API is not very difficult, but figuring it out can take a while.
@@ -21,15 +23,15 @@ reddiwrap makes it easy to:
   * save/unsave, hide/unhide, share and report posts,
   * submit links and self-posts,
   * comment on posts and other comments,
-	* read, mark, compose and reply to private messages
+  * read, mark, compose and reply to private messages
   * view your own or others' user info,
-	* view/subscribe/unsubscribe to the list of public subreddits,
-	* moderator functions:
-	  * remove/approve/mark as spam for comments and posts
-		* add/remove approved submitters
-		* add/remove moderators
-		* distinguish your own comments/posts with the moderator tag
-	* mark posts as NSFW
+  * view/subscribe/unsubscribe to the list of public subreddits,
+  * moderator functions:
+    * remove/approve/mark as spam for comments and posts
+    * add/remove approved submitters
+    * add/remove moderators
+    * distinguish your own comments/posts with the moderator tag
+  * mark posts as NSFW
   
 
 Sample usage:
@@ -58,9 +60,9 @@ Sample usage:
 		
 		
 		# To reply back to every message in your inbox:
-
+    
 		msgs = reddit.get('/message/inbox')
-
+    
 		for msg in msgs: # Iterate over the messages
 			
 			# Parrot back what the original message was
