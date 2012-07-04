@@ -11,18 +11,25 @@ This class allows the interaction with reddit to be simple and easy.
 
 reddiwrap makes it easy to:
 
-  * login,
-  * view user info,
-  * vote on posts and comments,
-  * save/unsave posts,
-  * submit links and self-posts,
-  * search reddit for posts,
-  * comment on posts and other comments,
+  * login to your reddit account,
   * load posts from:
     * subreddits,
     * user pages,
-    * and search results.
+    * search results.
   * navigate to 'next' and 'previous' pages.
+  * vote on posts and comments,
+  * save/unsave, hide/unhide, share and report posts,
+  * submit links and self-posts,
+  * comment on posts and other comments,
+	* read, mark, compose and reply to private messages
+  * view your own or others' user info,
+	* view/subscribe/unsubscribe to the list of public subreddits,
+	* moderator functions:
+	  * remove/approve/mark as spam for comments and posts
+		* add/remove approved submitters
+		* add/remove moderators
+		* distinguish your own comments/posts with the moderator tag
+	* mark posts as NSFW
   
 
 Sample usage:
@@ -32,22 +39,32 @@ Sample usage:
     
     from ReddiWrap import ReddiWrap
     
-    # Creates class, logs into account 'user' with the password 'pass' .
-    reddit = ReddiWrap('user', 'pass') 
+    reddit = ReddiWrap() # Create new instance of ReddiWrap
     
-    if not reddit.logged_in:      # Ensure we logged in correctly
+    login_result = reddit.login('your_username', 'your_password')
+		
+		if login_result != 0: # Anything other than '0' means an error occurred
+			
       print 'unable to log in.'
+			
       exit(1)
     
     pics = reddit.get('/r/pics')  # Get posts on the front page of reddit.com/r/pics
-    
-    for post in pics:             # Iterate over each post
-      
-      id = post['data']['name']   # Get the current post's ID (5-char string)
-      
-      reddit.vote(id, 1)          # Upvote this post. A -1 would mean downvote, 0 rescinds the vote.
-      
-      break                       # Stop after the first post
+		
+    post = pics[0]                # Grab first post
+		
+		reddit.upvote()               # Vote
+		
+		
+		
+		# To reply back to every message in your inbox:
+
+		msgs = reddit.get('/message/inbox')
+
+		for msg in msgs: # Iterate over the messages
+			
+			# Parrot back what the original message was
+			reddit.reply(msg, 'You just said: \n\n>' + msg.body)
 
 
 More examples showing how reddiwrap works is available in [ReddiWrapTest.py](https://github.com/derv82/reddiwrap/blob/master/ReddiWrapTest.py).
