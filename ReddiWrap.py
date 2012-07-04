@@ -14,13 +14,16 @@ TODO:
 	update Web to be compatible w/ python3.x, python 2.4.x, etc
 """
 
-import Web # Class for communicating with web pages.
+import Web # Class for communicating with the web server.
 
 try:
 	import json
 except ImportError:
 	# Older versions of python don't work with 'json', so we use simplejson
 	import simplejson as json
+
+from datetime import date # For converting unix epoch time in seconds to date/time
+import time               # For getting current... and possibly throttling requests
 
 
 def pretty_string(dict, indent=0):
@@ -224,17 +227,20 @@ class Comment(object):
 class UserInfo(object):
 	""" Contains information about the currently-logged-in reddit user. See user_info() """
 	def __init__(self, json_data):
-		self.id = json_data['id']
-		self.has_mail      = json_data['has_mail']      # Boolean, True if user has unread mail.
-		self.name          = json_data['name']          # String, username
-		self.created       = json_data['created']       # Time since 1/1/1970 when acct was created
-		self.created_utc   = json_data['created_utc']   # Same as 'created', but in UTC
-		self.modhash       = json_data['modhash']       # Unique hash for interacting with account
-		self.link_karma    = json_data['link_karma']    # Integer, total score of submissions
-		self.comment_karma = json_data['comment_karma'] # Integer, total score of comments
-		self.is_gold       = json_data['is_gold']       # Boolean
-		self.has_mod_mail  = json_data['has_mod_mail']  # Boolean
-		self.is_mod        = json_data['is_mod']        # Boolean
+		if json_data.get('error') == 404:
+			self.error = 404
+		else:
+			self.id = json_data['id']
+			self.has_mail      = json_data['has_mail']      # Boolean, True if user has unread mail.
+			self.name          = json_data['name']          # String, username
+			self.created       = json_data['created']       # Time since 1/1/1970 when acct was created
+			self.created_utc   = json_data['created_utc']   # Same as 'created', but in UTC
+			#self.modhash       = json_data['modhash']       # Unique hash for interacting with account
+			self.link_karma    = json_data['link_karma']    # Integer, total score of submissions
+			self.comment_karma = json_data['comment_karma'] # Integer, total score of comments
+			self.is_gold       = json_data['is_gold']       # Boolean
+			self.has_mod_mail  = json_data['has_mod_mail']  # Boolean
+			self.is_mod        = json_data['is_mod']        # Boolean
 	
 	def __repr__(self):
 		""" Returns string containing all fields and their values. Verbose. """
@@ -859,15 +865,24 @@ class ReddiWrap:
 	# USER-RELATED METHODS #
 	########################
 	
-	def user_info(self):
+	def user_info(self, username=None):
 		"""
-			Returns UserInfo object containing information about currently-logged-in user.
+			If username is unset (None), returns UserInfo object for the currently-logged-in user.
+			If username is set (String), returns UserInfo object for the given 'username'
+			
+			Returns a userinfo with .error = 404 if user page is not found. example:
+				uinfo = reddit.user_info('violentacres')
+				if uinfo.error == 404: print 'violentacres is still gone!'
+				else: print 'Who unbanned him?'
+			
 			Returns None object if unable to retrieve data.
 		"""
-		if not self.logged_in:
-			return None
-		
-		r = self.web.get('http://reddit.com/api/me.json')
+		if username == None:
+			if not self.logged_in: return None
+			url = 'http://reddit.com/api/me.json'
+		else:
+			url = 'http://reddit.com/user/%s/about.json' % username
+		r = self.web.get(url)
 		if r == '' or r == '""': return None # Server gave null response.
 		try:
 			js = json.loads(r)
@@ -1061,5 +1076,26 @@ class ReddiWrap:
 		else:        url += 'unfriend'
 		r = self.web.post(url, dict)
 		return (r != '')
-
-		
+	
+	def time_to_date(self, seconds):
+		""" Returns date object based on given seconds. """
+		return date.fromtimestamp(seconds)
+	
+	def time_since(self, seconds):
+		""" Returns time elapsed since current time in human-readable format. """
+		delta = time.time() - seconds
+		factors = [
+				('second', 60),
+				('minute', 60),
+				('hour',   24),
+				('day',   365),
+				('year',   10),
+				('decade',100)
+			]
+		current = delta
+		for (unit, factor) in factors:
+			if current < factor:
+				return '%d %s%s' % (current, unit, '' if current == 1 else 's')
+			current /= factor
+		current /= 365
+		return '%d %s%s' % (current, 'year', '' if current == 1 else 's')

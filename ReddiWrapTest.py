@@ -10,10 +10,16 @@ PASSWORD = 'your_password'
 # Testing login
 login = reddit.login(user=USERNAME, password=PASSWORD)
 if login != 0:
-	print 'unable to log in!'
+	print 'unable to log in:', login
+	print 'remember to change USERNAME and PASSWORD'
 	exit(1)
 print 'logged in as %s' % reddit.user
 
+uinfo = reddit.user_info()
+
+created = int(uinfo.created)
+print 'account created on:', reddit.time_to_date(created)
+print 'time since account created:', reddit.time_since(created)
 
 # Retrieve posts in a subreddit
 posts = reddit.get('/r/all/top?t=day')
