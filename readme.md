@@ -44,30 +44,26 @@ Sample usage:
     reddit = ReddiWrap() # Create new instance of ReddiWrap
     
     login_result = reddit.login('your_username', 'your_password')
-		
-		if login_result != 0: # Anything other than '0' means an error occurred
-			
+    
+    if login_result != 0: # Anything other than '0' means an error occurred
       print 'unable to log in.'
-			
       exit(1)
     
     pics = reddit.get('/r/pics')  # Get posts on the front page of reddit.com/r/pics
-		
     post = pics[0]                # Grab first post
-		
-		reddit.upvote()               # Vote
-		
-		
-		
-		# To reply back to every message in your inbox:
+    reddit.upvote()               # Vote
     
-		msgs = reddit.get('/message/inbox')
     
-		for msg in msgs: # Iterate over the messages
-			
-			# Parrot back what the original message was
-			reddit.reply(msg, 'You just said: \n\n>' + msg.body)
-
+    
+    # To reply back to every message in your inbox:
+    
+    msgs = reddit.get('/message/inbox') # Get messages
+    
+    for msg in msgs: # Iterate over the messages
+      
+      # Parrot back what the original message contained
+      reddit.reply(msg, 'You said: \n\n>' + msg.body)
+    
 
 More examples showing how reddiwrap works is available in [ReddiWrapTest.py](https://github.com/derv82/reddiwrap/blob/master/ReddiWrapTest.py).
 
