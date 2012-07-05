@@ -50,8 +50,7 @@ Sample usage:
       exit(1)
     
     pics = reddit.get('/r/pics')  # Get posts on the front page of reddit.com/r/pics
-    post = pics[0]                # Grab first post
-    reddit.upvote()               # Vote
+    reddit.upvote(pics[0])        # Vote
     
     
     
@@ -65,5 +64,4 @@ Sample usage:
       reddit.reply(msg, 'You said: \n\n>' + msg.body)
     
 
-More examples showing how reddiwrap works is available in [ReddiWrapTest.py](https://github.com/derv82/reddiwrap/blob/master/ReddiWrapTest.py).
-
+More examples showing how reddiwrap works are available in [ReddiWrapTest.py](https://github.com/derv82/reddiwrap/blob/master/ReddiWrapTest.py).
