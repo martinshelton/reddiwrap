@@ -65,3 +65,11 @@ Sample usage:
     
 
 More examples showing how reddiwrap works are available in [ReddiWrapTest.py](https://github.com/derv82/reddiwrap/blob/master/ReddiWrapTest.py).
+
+
+License
+-------
+
+ReddiWrap is licensed under the GNU General Public License version 2 (GNU GPL v2)
+
+(C) Copyright 2012 Derv Merkler
