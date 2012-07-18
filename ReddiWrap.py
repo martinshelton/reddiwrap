@@ -10,7 +10,7 @@ Tested on Python 2.6.7, 2.7.1, and 3.2.3 (on OSX)
 TODO:
 	include 'depth' in comments to know how deep into replies we are.
 	test all use cases (user about page, /r/none, etc)
-	
+
 	throw exceptions when receiving errors from server (403)
 """
 
@@ -42,10 +42,10 @@ def pretty_string(dict, indent=0):
 		else:
 			result.append('\t' * indent + '%s:\t "%s"' % (key, value))
 	return '\n'.join(result)
-	
+
 
 class Post(object):
-	""" 
+	"""
 		Stores information and logic about reddit "post"s.
 		A reddit post is a submission that contains either a link or self-text.
 		Posts contain child comments.
@@ -88,7 +88,7 @@ class Post(object):
 		self.link_flair_class   = '' # link_flair_css_class": null,
 		self.author_flair_text  = '' # "author_flair_css_class": null,
 		self.author_flair_class = ''
-	
+
 	def set_using_json_data(self, data):
 		""" Sets fields using json data. Assumes all fields in JSON exist. """
 		self.id            = data['id']
@@ -125,7 +125,6 @@ class Post(object):
 		self.author_flair_text  = data['author_flair_text']
 		self.author_flair_class = data['author_flair_css_class']
 
-		
 	def __str__(self):
 		""" Summary of comment; author and body. """
 		#return str(('"%s" by %s in /r/%s' % (self.title, self.author, self.subreddit)).encode('ascii', 'ignore'))
@@ -136,17 +135,17 @@ class Post(object):
 				text = temp
 		except NameError: pass
 		return text
-	
+
 	def __repr__(self):
 		return self.__str__()
-	
+
 	def verbose(self):
 		""" Returns string containing all fields and their values. Verbose. """
 		return pretty_string(self.__dict__)
-	
+
 
 class Comment(object):
-	""" 
+	"""
 		Stores information and logic about a comment.
 		Comments are either direct replies to a Post or replies to other Comments.
 	"""
@@ -174,7 +173,7 @@ class Comment(object):
 		self.approved_by = ''
 		self.flair_class = ''
 		self.flair_text  = ''
-	
+
 	def set_using_json_data(self, data):
 		""" Initializes object using JSON data. Assumes fields in JSON exist. """
 		self.id          = data['id']
@@ -200,7 +199,7 @@ class Comment(object):
 		self.approved_by = data['approved_by']
 		self.flair_class = data['author_flair_css_class']
 		self.flair_text  = data['author_flair_text']
-		
+
 		# Adding other comments / more
 		if data.get('replies') == None: return
 		replies = data['replies']
@@ -218,7 +217,7 @@ class Comment(object):
 			comment.set_using_json_data(cdata)
 			# Recursive call! Parses and stores child comments
 			self.children.append(comment)
-	
+
 	def __str__(self):
 		""" STRING summary of comment; author and body. """
 		#return ('%s: "%s"' % (self.author, self.body)).encode('ascii', 'ignore')
@@ -229,10 +228,10 @@ class Comment(object):
 				text = temp
 		except NameError: pass
 		return text
-	
+
 	def __repr__(self):
 		return self.__str__()
-	
+
 	def verbose(self):
 		""" Returns string containing all fields and their values. Verbose. """
 		return pretty_string(self.__dict__)
@@ -256,14 +255,14 @@ class UserInfo(object):
 			self.is_gold       = json_data['is_gold']       # Boolean
 			self.has_mod_mail  = json_data['has_mod_mail']  # Boolean
 			self.is_mod        = json_data['is_mod']        # Boolean
-	
+
 	def __repr__(self):
 		""" Returns string containing all fields and their values. Verbose. """
 		return pretty_string(self.__dict__)
 
 
 class Subreddit(object):
-	""" 
+	"""
 		Contains information about a single subreddit.
 		Used by get_reddits()
 	"""
@@ -271,7 +270,7 @@ class Subreddit(object):
 		self.id           = json_data['id']           # 2qh0u
 		self.name         = json_data['name']         # t5_2qh0u
 		self.display_name = json_data['display_name'] # pics
-		self.header_img   = json_data['header_img']   # .png 
+		self.header_img   = json_data['header_img']   # .png
 		self.title        = json_data['title']        # /r/Pics
 		self.url          = json_data['url']          # /r/pics/
 		self.description  = json_data['description']  # <text description>
@@ -281,7 +280,7 @@ class Subreddit(object):
 		self.subscribers  = json_data['subscribers']  # 1979507
 		self.public_desc  = json_data['public_description'] # <brief summary>
 		self.header_title = json_data['header_title'] # "Pictures and Images"
-	
+
 	def __repr__(self):
 		""" Returns string containing all fields and their values. Verbose. """
 		return pretty_string(self.__dict__)
@@ -323,7 +322,7 @@ class Message(object):
 						# Recursive call
 						msg = Message(cdata)
 						self.replies.append(msg)
-	
+
 	def __repr__(self):
 		""" Returns brief summary of message. """
 		text = '%s sent PM: "%s"' % (self.author, self.body)
@@ -333,7 +332,7 @@ class Message(object):
 				text = temp
 		except NameError: pass
 		return text
-	
+
 	def verbose(self):
 		""" Returns string containing all fields and their values. Verbose. """
 		return pretty_string(self.__dict__)
@@ -342,67 +341,67 @@ class Message(object):
 class ReddiWrap:
 	"""
 		Class for interacting with reddit.com
-		Uses reddit's API. 
+		Uses reddit's API.
 	"""
-	
+
 	def __init__(self, user='', password='', user_agent=None):
 		"""
 			Initializes instance fields, sets user agent.
 			Logs into reddit if user and password are given.
 		"""
-		
+
 		# Default user agent is awesome!
 		if user_agent == None:
 			user_agent = 'ReddiWrap'
-		
+
 		# Create object we will use to communicate with reddit's servers
-		self.web = Web.Web(user_agent=user_agent) 
-		
+		self.web = Web.Web(user_agent=user_agent)
+
 		self.modhash   = ''    # Hash used to authenticate/interact with user account
 		self.last_url  = ''    # The last URL retrieved
 		self.before    = None  # ID pointing to 'previous' page
 		self.after     = None  # ID pointing to 'next' page
 		self.logged_in = False # Flag to detect if we are logged in or not
-		
+
 		# Sets instance fields, logs in user if needed.
 		self.login(user, password)
-	
-	
-	
+
+
+
 	####################
 	# LOGGING IN & OUT #
 	####################
-	
+
 	def login(self, user='', password=''):
 		"""
 			Clears cookies/modhash, then logs into reddit if applicable.
 			Logs out user if user or password is '' or None
-			
+
 			Returns 0 if login (or logout) is successful,
 			Returns 1 if user/pass is invalid,
 			Returns 2 if login rate limit is reached,
 			Returns -1 if some unknown error is encountered
 		"""
-		
+
 		self.web.clear_cookies() # Removes any traces of previous activity
 		self.modhash = ''
 		self.logged_in = False
-		
+
 		if user == '' or user == None or \
-				password == '' or password == None: 
+				password == '' or password == None:
 			# "Log out"
 			self.user     = ''
 			self.password = ''
 			return 0
-		
+
 		self.user     = user
 		self.password = password
-		
+
 		dict = {}
 		dict['user']     = self.user
 		dict['passwd']   = self.password
 		dict['api_type'] = 'json'
-		
+
 		r = self.web.post('http://www.reddit.com/api/login/%s' % self.user, dict)
 		if "WRONG_PASSWORD" in r:
 			# Invalid password
@@ -420,24 +419,24 @@ class ReddiWrap:
 			return 0
 		# Unexpected response.
 		return -1
-	
-	
+
+
 	def logout(self):
 		"""
 			"Logs out": Clears cookies, resets modhash.
 		"""
 		self.switch_user('', '')
-	
-	
+
+
 	################
 	# WEB REQUESTS #
 	################
-	
+
 	@staticmethod
 	def fix_url(url):
 		"""
 			'Corrects' a given URL as needed. Ensures URL will function with API properly.
-			
+
 			Ensures:
 				* URL begins with http://
 				* 'reddit.com' is used instead of 'www.reddit.com'
@@ -446,16 +445,16 @@ class ReddiWrap:
 		"""
 		result = url
 		if result == '': result = '/'
-		
+
 		if result.startswith('/'):
 			result = 'http://reddit.com' + result
-		
+
 		if not result.startswith('http://'):
 			result = 'http://' + result
-		
+
 		# Get does not like 'www.' for some reason.
 		result = result.replace('www.reddit.com', 'reddit.com')
-		
+
 		if not '.json' in result:
 			q = result.find('?')
 			if q == -1:
@@ -463,8 +462,8 @@ class ReddiWrap:
 			else:
 				result = result[:q] + '.json' + result[q:]
 		return result
-	
-	
+
+
 	def get(self, url):
 		"""
 			Returns a list of Post and/or Comment and/or Message and/or Subreddit objects.
@@ -489,26 +488,25 @@ class ReddiWrap:
 			'url' must be within reddit.com domain.
 			
 			This method automatically updates self.modhash so you don't have to.
-				
 		"""
-		
+
 		# "Fix" URL to ensure it is formatted for reddit queries
 		url = self.fix_url(url)
-		
+
 		# Save last URL in case user wants to get_next() or get_previous()
-		self.last_url = url 		
-		
+		self.last_url = url
+
 		r = self.web.get(url) # Get the response
-		
+
 		if r == '' or r == '""' or r == '"{}"':
 			return None # Server gave null response.
-		
+
 		try:
 			js = json.loads(r)
 		except ValueError:
 			# If it's not JSON, we don't want to parse it.
 			return None
-		
+
 		posts = []
 		# If the response json contains a LIST of objects: post (0) & comments (1)
 		if isinstance(js, list):
@@ -526,18 +524,18 @@ class ReddiWrap:
 			for child in data.get('children'):
 				cdata = child['data']
 				ckind = child['kind']
-				if ckind == 'more': 
+				if ckind == 'more':
 					post.has_more_comments = True
 					post.more_comments = cdata
 					continue
 				comment = Comment()
 				comment.set_using_json_data(cdata)
 				post.comments.append(comment)
-		
+
 		# Or simply the data object (subreddit page, user page, etc)
 		elif isinstance(js, dict):
 			data = js.get('data')
-			if data == None or data.get('children') == None: 
+			if data == None or data.get('children') == None:
 				return posts
 			for child in data.get('children'):
 				cdata = child['data']
@@ -561,18 +559,18 @@ class ReddiWrap:
 					# Subreddit
 					subr = Subreddit(cdata)
 					posts.append(subr)
-		
+
 		# Set the variables to keep track of the user hash and current page.
 		self.modhash = data.get('modhash')
 		self.before  = data.get('before')
 		self.after   = data.get('after')
-		
+
 		return posts
-	
-	
+
+
 	def fetch_comments(self, post, limit=0):
 		"""
-			Retrieves comments for a given Post. 
+			Retrieves comments for a given Post.
 			Sets the comments to the given Post object.
 			Can be used to "refresh" comments for a Post.
 			"limit" is the number of posts to grab, uses account's preference as default.
@@ -585,12 +583,12 @@ class ReddiWrap:
 		if posts == None or len(posts) == 0: return
 		post.comments     = posts[0].comments
 		post.num_comments = posts[0].num_comments
-	
-	
+
+
 	##########
 	# VOTING #
 	##########
-	
+
 	def vote(self, post, direction):
 		"""
 			Votes for a post or comment.
@@ -609,20 +607,20 @@ class ReddiWrap:
 		response = self.web.post('http://www.reddit.com/api/vote', dict)
 		# Reddit should respond with '{}' if vote was successful.
 		return (response == '{}')
-	
+
 	def upvote(self, post):
 		return self.vote(post,  1)
 	def downvote(self, post):
 		return self.vote(post, -1)
 	def novote(self, post):
 		return self.vote(post,  0)
-	
-	
+
+
 	##############
 	# COMMENTING #
 	##############
-	
-	
+
+
 	def get_user_comments(self, user, sort=''):
 		"""
 			Returns list of Comments made by "user".
@@ -638,14 +636,14 @@ class ReddiWrap:
 			Returns None if unable to retrieve.
 		"""
 		return self.get('/user/%s/submitted/' % user)
-	
-	
+
+
 	def reply(self, post, text):
-		""" 
+		"""
 			Reply to given Post, Comment, or Message.
 			"post" is the Post, Comment, or Message object to reply to.
 			"text" is the text to reply with.
-			
+
 			Returns empty dict {} if unable to reply.
 			Otherwise, returns dict containing reply information:
 			  'content':     javascript for updating layout on main site
@@ -656,21 +654,21 @@ class ReddiWrap:
 			Comments/Posts have additional keys in dict:
 				'replies':     List of replies to reply (?) probably empty everytime...
 				'link':        base36 ID of post reply was inside of. E.g. t3_vvtts
-			
+
 			TODO Return a new Comment/Message object, containing expected values.
 		"""
 		result = {}
 		dict = {}
 		dict['uh']   = self.modhash
 		dict['text'] = text
-		
+
 		if isinstance(post, Post):
 			dict['thing_id'] = 't3_%s' % post.id
 		elif isinstance(post, Comment):
 			dict['parent'] = 't1_%s' % post.id
 		elif isinstance(post, Message):
 			dict['thing_id'] = post.name
-		
+
 		response = self.web.post('http://www.reddit.com/api/comment', dict)
 		if '".error.USER_REQUIRED"' in response: return result
 		# Extract appropriate dict out of response
@@ -678,7 +676,7 @@ class ReddiWrap:
 		jquery = jres.get('jquery')
 		if jquery == None:
 			return result
-		
+
 		for i in range(0, len(jquery)):
 			if not isinstance(jquery[i][3], list) or len(jquery[i][3]) == 0: continue
 			if not isinstance(jquery[i][3][0], list) or len(jquery[i][3][0]) == 0: continue
@@ -686,20 +684,20 @@ class ReddiWrap:
 			result = jdict.get('data')
 			break
 		return result
-	
-	
-	
+
+
+
 	#############
 	# SEARCHING #
 	#############
-	
+
 	def search(self, query, subreddit='', sort=''):
 		"""
 			Searches reddit, returns list of results.
 			"query" is the text to search for on reddit
 			"subreddit" is the subreddit to restrict the search to. Use '' to search all of reddit.
 			"sort" is the order of results. Use "new", "top" or "relevance" (default)
-			
+
 			Examples:
 				results = reddit.search('girlfriend')
 				results = reddit.search('skateboard', subreddit='pics')
@@ -707,18 +705,18 @@ class ReddiWrap:
 			After calling search(), you can call get_next() and get_previous() to navigate.
 		"""
 		url = '/search?q=' + query
-		if sort != '': 
+		if sort != '':
 			url += '&sort=' + sort
 		if subreddit != '':
 			url = '/r/' + subreddit + url + '&restrict_sr=on'
 		return self.get(url)
-	
-	
-	
+
+
+
 	##############
 	# NAVIGATING #
 	##############
-	
+
 	"""
 		Notice that inside of the 'get()' method, we store:
 			* the last URL retrieved (self.last_url)
@@ -756,15 +754,15 @@ class ReddiWrap:
 		if '&before' in url: url = url[:url.find('&before')]
 		if '?after'  in url: url = url[:url.find('?after')]
 		if '&after'  in url: url = url[:url.find('&after')]
-		
+
 		if '?' in url:
 			url += '&%s=%s' % (nav_text, nav_id)
 		else:
 			url += '?%s=%s' % (nav_text, nav_id)
 		url += '&count=25' # Include "count=#" the navigation to work properly!
 		return self.get(url)
-		
-	
+
+
 	def get_previous(self):
 		"""
 			Go "back" -- that is, retrieve previous 25/50/100 posts. See navigate()
@@ -778,23 +776,23 @@ class ReddiWrap:
 			Returns None if unable to retrieve, or [] if no results are found.
 		"""
 		return self.navigate(after=True)
-	
-	
+
+
 	def has_previous(self):
 		""" Returns True if there is a 'previous' page, False otherwise.  """
 		return (self.before != None)
-	
-	
+
+
 	def has_next(self):
 		""" Returns True if there is a 'next' page, False otherwise.  """
 		return (self.after != None)
-	
-	
-	
+
+
+
 	###########
 	# POSTING #
 	###########
-	
+
 	def post_link(self, title, link, subreddit):
 		"""
 			Submits a new link (URL) to reddit.
@@ -817,7 +815,7 @@ class ReddiWrap:
 		response = self.web.post('http://www.reddit.com/api/submit', dict)
 		if "You haven't verified your email address" in response:
 			return ''
-		
+
 		if 'already_submitted=true' in response:
 			# Link already exists in that subreddit!
 			jres = json.loads(response)
@@ -826,8 +824,8 @@ class ReddiWrap:
 			return existing_link
 		link = self.web.between(response, 'call", ["http://www.reddit.com/', '"]')[0]
 		return link
-	
-	
+
+
 	def post_self(self, title, text, subreddit):
 		"""
 			Submits a new "self-post" (text-based post) reddit.
@@ -851,13 +849,13 @@ class ReddiWrap:
 			return ''
 		link = self.web.between(response, 'call", ["http://www.reddit.com/', '"]')[0]
 		return link
-	
-	
+
+
 	############
 	# MESSAGES #
 	############
 	def compose(self, recipient, subject, message):
-		""" 
+		"""
 			Sends PM to recipient.
 			Returns True if message was sent successfully, False otherwise.
 		"""
@@ -871,7 +869,7 @@ class ReddiWrap:
 		dict['renderstyle'] = 'html'
 		r = self.web.post('http://www.reddit.com/api/compose', dict)
 		return ('your message has been delivered' in r)
-	
+
 	def mark_message(self, message, mark_as_read=True):
 		""" Marks passed message as either 'read' or 'unread' depending on mark_as_read's value """
 		dict = {}
@@ -880,22 +878,22 @@ class ReddiWrap:
 		dict['renderstyle'] = 'html'
 		r = self.web.post('http://www.reddit.com/api/read_message', dict)
 		message.new = not mark_as_read
-	
-	
+
+
 	########################
 	# USER-RELATED METHODS #
 	########################
-	
+
 	def user_info(self, username=None):
 		"""
 			If username is unset (None), returns UserInfo object for the currently-logged-in user.
 			If username is set (String), returns UserInfo object for the given 'username'
-			
+
 			Returns a userinfo with .error = 404 if user page is not found. example:
 				uinfo = reddit.user_info('violentacres')
 				if uinfo.error == 404: print('violentacres is still gone')
 				else: print('What the...')
-			
+
 			Returns None object if unable to retrieve data.
 		"""
 		if username == None:
@@ -909,8 +907,8 @@ class ReddiWrap:
 		except ValueError: return None # If it's not JSON, we can't parse it.
 		if js == None: return None
 		return UserInfo(js.get('data'))
-	
-	
+
+
 	def save(self, post):
 		""" Saves Post to user account. "post" is the actual Post object to save. """
 		dict = {}
@@ -918,7 +916,7 @@ class ReddiWrap:
 		dict['uh'] = self.modhash
 		response = self.web.post('http://www.reddit.com/api/save', dict)
 		return (response == '{}')
-	
+
 	def unsave(self, post):
 		""" Un-saves Post from user account. "post" is the actual Post object to un-save. """
 		dict = {}
@@ -926,7 +924,7 @@ class ReddiWrap:
 		dict['uh'] = self.modhash
 		response = self.web.post('http://www.reddit.com/api/unsave', dict)
 		return (response == '{}')
-	
+
 	def hide(self, post):
 		""" Hides Post from user's visibility. "post" is the actual Post object to hide. """
 		dict = {}
@@ -935,7 +933,7 @@ class ReddiWrap:
 		dict['executed'] = 'hidden'
 		response = self.web.post('http://www.reddit.com/api/hide', dict)
 		return (response == '{}')
-	
+
 	def unhide(self, post):
 		""" Un-hides Post from user's visibility. "post" is the actual Post object to un-hide. """
 		dict = {}
@@ -955,7 +953,7 @@ class ReddiWrap:
 		dict['renderstyle'] = 'html'
 		r = self.web.post('http://www.reddit.com/api/report', dict)
 		return (r == '{}')
-	
+
 	def share(self, post, from_username, from_email, to_email, message):
 		""" Share a post with someone via email. """
 		dict = {}
@@ -970,7 +968,7 @@ class ReddiWrap:
 		dict['renderstyle'] = 'html'
 		r = self.web.post('http://www.reddit.com/api/share', dict)
 		return ('your link has been shared' in r)
-	
+
 	def mark_nsfw(self, post):
 		""" Marks a Post as NSFW. """
 		dict = {}
@@ -980,7 +978,7 @@ class ReddiWrap:
 		dict['renderstyle'] = 'html'
 		r = self.web.post('http://www.reddit.com/api/marknsfw', dict)
 		return (r == '{}')
-	
+
 	def unmark_nsfw(self, post):
 		""" Removes NSFW mark from a Post. """
 		dict = {}
@@ -990,7 +988,7 @@ class ReddiWrap:
 		dict['renderstyle'] = 'html'
 		r = self.web.post('http://www.reddit.com/api/unmarknsfw', dict)
 		return (r == '{}')
-	
+
 	def subscribe(self, subreddit, unsub=False):
 		""" Subscribes (or unsubscribes) user to/from subreddit. """
 		dict = {}
@@ -1002,13 +1000,13 @@ class ReddiWrap:
 		else:         dict['action'] = 'unsub'
 		r = self.web.post('http://www.reddit.com/api/subscribe', dict)
 		return (r == '{}')
-		
-	
+
+
 
 	#############
 	# MODERATOR #
 	#############
-	
+
 	def spam(self, post):
 		""" Marks a Post (or Comment) as 'spam'. """
 		dict = {}
@@ -1018,7 +1016,7 @@ class ReddiWrap:
 		dict['renderstyle'] = 'html'
 		r = self.web.post('http://www.reddit.com/api/remove', dict)
 		return (r == '{}')
-	
+
 	def approve(self, post):
 		""" Un-removes ('approves') a Post or Comment. """
 		dict = {}
@@ -1028,7 +1026,7 @@ class ReddiWrap:
 		dict['renderstyle'] = 'html'
 		r = self.web.post('http://www.reddit.com/api/approve', dict)
 		return (r == '{}')
-	
+
 	def remove(self, post):
 		""" Removes a Post or Comment from public view. """
 		dict = {}
@@ -1039,7 +1037,7 @@ class ReddiWrap:
 		dict['renderstyle'] = 'html'
 		r = self.web.post('http://www.reddit.com/api/remove', dict)
 		return (r == '{}')
-	
+
 	def distinguish(self, post, turn_on=True):
 		""" Distinguishes a Post or Comment with moderator flair. """
 		dict = {}
@@ -1054,10 +1052,10 @@ class ReddiWrap:
 			url += 'no'
 		r = self.web.post(url, dict)
 		return (r != '')
-	
+
 	def approved_submitter(self, subreddit, username, add_user=True):
-		""" 
-			Add/remove user as an Approved Submitter for a given Subreddit. 
+		"""
+			Add/remove user as an Approved Submitter for a given Subreddit.
 			subreddit is a Subreddit object! Must have .name and .display_name
 			Must be logged in as a moderator of the Subreddit.
 		"""
@@ -1075,9 +1073,9 @@ class ReddiWrap:
 		else:        url += 'unfriend'
 		r = self.web.post(url, dict)
 		return (r != '')
-	
+
 	def moderator(self, subreddit, username):
-		""" 
+		"""
 			Add/remove user as a moderator of a given Subreddit
 			subreddit is a Subreddit object! Must have .name and .display_name
 			Must be logged in as a moderator of the Subreddit.
@@ -1096,11 +1094,11 @@ class ReddiWrap:
 		else:        url += 'unfriend'
 		r = self.web.post(url, dict)
 		return (r != '')
-	
+
 	def time_to_date(self, seconds):
 		""" Returns date object based on given seconds. """
 		return date.fromtimestamp(seconds)
-	
+
 	def time_since(self, seconds):
 		""" Returns time elapsed since current time in human-readable format. """
 		delta = time.time() - seconds
@@ -1119,13 +1117,13 @@ class ReddiWrap:
 			current /= factor
 		current /= 365
 		return '%d %s%s' % (current, 'year', '' if current == 1 else 's')
-	
+
 	def save_cookies(self, filename):
 		""" Saves cookies to a local file, to be loaded later by load_cookies. """
 		self.web.cj.save(filename=filename, ignore_discard=True, ignore_expires=True)
-	
+
 	def load_cookies(self, filename):
-		""" 
+		"""
 			Loads cookie from local file. Requests reddit for username and modhash.
 			Returns True if cookie loading was successful, false otherwise.
 		"""
@@ -1143,4 +1141,3 @@ class ReddiWrap:
 			return True
 		except IOError:
 			return False
-	
